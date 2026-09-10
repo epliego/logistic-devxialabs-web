@@ -16,6 +16,12 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
+            "define": {
+              "__URL_BASE_NESTJS__": "process.env.URL_BASE_NESTJS",
+              "__URL_BASE_ANGULAR__": "process.env.URL_BASE_ANGULAR",
+              "__INTERNAL_SECRET_ACCESS_TOKEN__": "process.env.INTERNAL_SECRET_ACCESS_TOKEN",
+              "__INTERNAL_ACCESS_TOKEN_EXPIRES_IN__": "process.env.INTERNAL_ACCESS_TOKEN_EXPIRES_IN"
+            },
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
             "assets": [

@@ -45,6 +45,13 @@ export class Shipments {
   private estado: string = '';
 
   public async ngOnInit(): Promise<void> {
+    if (
+      !localStorage.getItem('internal_user_token') ||
+      localStorage.getItem('internal_user_token') === ''
+    ) {
+      await this.router.navigate(['/']);
+    }
+
     try {
       await this.cargarRecursos.cargarEstilos(ESTILOS_DATATABLE);
       await this.cargarRecursos.cargarScripts(SCRIPTS_DATATABLE);

@@ -2,6 +2,8 @@ import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { tap } from 'rxjs/operators';
+import { jwtDecode } from 'jwt-decode';
+import { AuthUserType } from '../../../types/auth-user.type';
 import { InternalUserService } from '../../../services/internal-user.service';
 
 const $ = (window as any).$;
@@ -19,7 +21,7 @@ export class Login {
 
   private readonly router = inject(Router);
 
-  formInternalUserLogin!: FormGroup;
+  form_internal_user_login!: FormGroup;
 
   private readonly internalUserService = inject(InternalUserService);
 
@@ -32,7 +34,7 @@ export class Login {
    * @private
    */
   private initializeInternalUserLoginForm() {
-    this.formInternalUserLogin = this.fb.group({
+    this.form_internal_user_login = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required]],
     });
@@ -48,13 +50,11 @@ export class Login {
   onSubmit() {
     const ngOnSubmitThis = this;
 
-    if (this.formInternalUserLogin.valid) {
-      // console.log('Sent data:', this.formInternalUserLogin.value);
+    if (this.form_internal_user_login.valid) {
+      // console.log('Sent data:', this.form_internal_user_login.value);
 
       this.internalUserService
-        .internalUserLogin(
-          this.formInternalUserLogin.value,
-        )
+        .internalUserLogin(this.form_internal_user_login.value)
         .pipe(
           tap(() => {
             // this.isLoading = true;
@@ -74,9 +74,14 @@ export class Login {
               // console.log(response);
 
               if (response.statusCode === 200) {
+                localStorage.setItem('internal_user_token', response.data[0].access_token);
+
+                // console.log(jwtDecode(response.data[0].access_token));
+                const access_token_decoded = jwtDecode<AuthUserType>(response.data[0].access_token);
+
                 Toastify({
                   // text: response.message,
-                  text: 'Bienvenido',
+                  text: 'Bienvenido ' + access_token_decoded.user_name,
                   duration: 5000,
                   position: 'center',
                   style: {
@@ -85,8 +90,6 @@ export class Login {
                 }).showToast(); //Consulted (12-2023) in: https://apvarun.github.io/toastify-js/, https://github.com/apvarun/toastify-js/blob/master/README.md
 
                 ngOnSubmitThis.router.navigate(['/internal/shipments']);
-
-                localStorage.setItem('internal_user_token', response.data[0].access_token);
               } else {
                 let message_text;
                 if (response.errors !== undefined) {
