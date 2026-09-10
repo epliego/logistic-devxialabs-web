@@ -4,13 +4,14 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { tap } from 'rxjs/operators';
 import { InternalService } from '../../../services/internal.service';
+import { ValuesCatalogService } from '../../../services/values-catalog.service';
 
 const $ = (window as any).$;
 
 declare const Toastify: any;
 
 @Component({
-  selector: 'ver-paquete-root',
+  selector: 'view-shipment-root',
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './view-shipment.html',
   styleUrl: './view-shipment.css',
@@ -18,77 +19,73 @@ declare const Toastify: any;
 export class ViewShipment {
   protected readonly title = signal('Internal - Ver Shipments');
 
-  protected readonly paqueteId = signal<number | null>(null);
+  protected readonly shipmentId = signal<number | null>(null);
   private readonly route = inject(ActivatedRoute);
 
   private readonly paquetesService = inject(InternalService);
 
-  formActualizarPaquete!: FormGroup;
-
-  estados = [
-    { id: 'REGISTRADO', label: 'REGISTRADO' },
-    { id: 'EN_TRANSITO', label: 'EN_TRANSITO' },
-    { id: 'ENTREGADO', label: 'ENTREGADO' },
-    { id: 'DEVUELTO', label: 'DEVUELTO' },
-  ];
+  updateShipmentForm!: FormGroup;
 
   constructor(private fb: FormBuilder) {
     // this.initForm();
-    this.inicializarForm();
+    this.initializeForm();
   }
 
   public async ngOnInit(): Promise<void> {
     const idStr = this.route.snapshot.paramMap.get('id');
     const idNum = idStr ? Number(idStr) : NaN;
-    this.paqueteId.set(Number.isFinite(idNum) ? idNum : null);
+    this.shipmentId.set(Number.isFinite(idNum) ? idNum : null);
 
-    this.cargarDatosPaquete();
+    this.loadShipmentData();
   }
 
   /**
-   * Inicializar el formulario de actualizar paquete con validaciones
+   * Initialize Form update Shipment
    * @private
    */
-  private inicializarForm() {
-    this.formActualizarPaquete = this.fb.group({
-      paquete_id: ['', [Validators.required]],
-      codigo_guia: ['', [Validators.required]],
-      destinatario: ['', [Validators.required]],
-      ciudad_destino: ['', [Validators.required]],
-      peso_kg: ['', [Validators.required, Validators.min(1)]],
-      estado: ['', [Validators.required]],
+  private initializeForm() {
+    this.updateShipmentForm = this.fb.group({
+      shipment_id: ['', [Validators.required]],
+      guide_code: ['', [Validators.required]],
+      provenance_direction: ['', [Validators.required]],
+      destination_direction: ['', [Validators.required]],
+      recipient_name: ['', [Validators.required, Validators.min(1)]],
+      recipient_phone: [],
+      weight_kg: ['', [Validators.required]],
+      status: ['', Validators.required],
     });
   }
 
   /**
-   * Obtener los datos del paquete y cargarlos al formulario
+   * Get Shipment data and show in Form
    * @private
    */
-  private cargarDatosPaquete() {
-    this.paquetesService.obtenerPaquete(this.paqueteId()!.toString()).subscribe((res: any) => {
-      this.formActualizarPaquete.patchValue({
-        paquete_id: res.data[0].id,
-        codigo_guia: res.data[0].codigo_guia,
-        destinatario: res.data[0].destinatario,
-        ciudad_destino: res.data[0].ciudad_destino,
-        peso_kg: res.data[0].peso_kg,
-        estado: res.data[0].estado,
+  private loadShipmentData() {
+    this.paquetesService
+      .getShipment(this.shipmentId()!.toString(), localStorage.getItem('internal_user_token')!)
+      .subscribe((res: any) => {
+        this.updateShipmentForm.patchValue({
+          shipment_id: res.data[0].shipment_id,
+          guide_code: res.data[0].guide_code,
+          provenance_direction: res.data[0].provenance_direction,
+          destination_direction: res.data[0].destination_direction,
+          recipient_name: res.data[0].recipient_name,
+          recipient_phone: res.data[0].recipient_phone,
+          weight_kg: res.data[0].weight_kg,
+          status: res.data[0].status,
+        });
       });
-    });
   }
 
   /**
-   * Enviar los datos para actualizar los datos del paquete
+   * Update Shipment data
    */
   onSubmit() {
-    if (this.formActualizarPaquete.valid) {
-      // console.log('Datos enviados:', this.formActualizarPaquete.value);
+    if (this.updateShipmentForm.valid) {
+      // console.log('Datos enviados:', this.updateShipmentForm.value);
 
       this.paquetesService
-        .actualizarPaquete(
-          this.formActualizarPaquete.value,
-          this.formActualizarPaquete.value.paquete_id,
-        )
+        .actualizarPaquete(this.updateShipmentForm.value, this.updateShipmentForm.value.paquete_id)
         .pipe(
           tap(() => {
             // this.isLoading = true;

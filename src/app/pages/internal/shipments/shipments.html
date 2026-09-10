@@ -19,7 +19,7 @@
             <select id="find_by_status" name="find_by_status" class="form-select validate" (change)="shipmentsByStatus($event)" required>
               <option value="">TODOS</option>
               @for (option of this.status_options; track option.id) {
-                <option value="{{ option.id }}">{{ option.name }}</option>
+                <option [value]="option.id">{{ option.name }}</option>
               }
             </select>
           </div>

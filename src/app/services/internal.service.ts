@@ -68,11 +68,16 @@ export class InternalService {
   }
 
   /**
-   * Obtener datos de un Paquete desde la API
-   * @param paquete_id
+   * Get data Shipment
+   * @param shipment_id
+   * @param access_token
    */
-  public obtenerPaquete(paquete_id: string) {
-    return this.http.get('http://localhost:3000/api/paquetes/' + paquete_id);
+  public getShipment(shipment_id: string, access_token: string) {
+    return this.http.get(environment.URL_BASE_NESTJS + 'internal/shipments/' + shipment_id, {
+      headers: new HttpHeaders({
+        Authorization: 'Bearer ' + access_token,
+      }),
+    });
   }
 
   /**

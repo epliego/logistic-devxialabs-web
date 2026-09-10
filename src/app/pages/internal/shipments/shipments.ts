@@ -351,7 +351,7 @@ export class Shipments {
     $('body').on('click', '.view-shipment', (e: any) => {
       const id = $(e.currentTarget).data('id');
 
-      this.router.navigate(['/shipments/view_shipment/' + id]);
+      this.router.navigate(['/internal/view_shipment/' + id]);
     });
   }
 
