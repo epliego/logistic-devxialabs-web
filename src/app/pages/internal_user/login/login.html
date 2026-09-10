@@ -1,0 +1,51 @@
+<div class="card-body p-4">
+  <div class="text-center mt-2">
+    <h5 class="text-primary">Bienvenido</h5>
+    <p class="text-muted">Por favor indica tu email y password para ingresar</p>
+  </div>
+  <div class="p-2 mt-4">
+    <form [formGroup]="formInternalUserLogin" (ngSubmit)="onSubmit()">
+      <div class="mb-3 input-group-lg">
+        <div class="form-line">
+          <label for="email" class="form-label">Email</label>
+          <input type="email" class="form-control" formControlName="email" id="email" placeholder="Email" required />
+          @if (formInternalUserLogin.get('email')?.invalid && (formInternalUserLogin.get('email')?.dirty || formInternalUserLogin.get('email')?.touched)) {
+            <div class="error">
+              @if (formInternalUserLogin.get('email')?.errors?.['required']) {
+                <span style="color: #FF0000; font-weight: 500; margin-bottom: .5rem;">El campo es requerido.</span>
+              }
+              @if (formInternalUserLogin.get('email')?.errors?.['email']) {
+                <span>El email no es válido.</span>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label" for="password">Password</label>
+        <div class="position-relative auth-pass-inputgroup mb-3 input-group-lg">
+          <div class="form-line">
+            <input type="password" class="form-control pe-5 password-input" placeholder="Password" id="password" formControlName="password" required />
+            @if (formInternalUserLogin.get('password')?.invalid && (formInternalUserLogin.get('password')?.dirty || formInternalUserLogin.get('password')?.touched)) {
+              <div class="error">
+                @if (formInternalUserLogin.get('password')?.errors?.['required']) {
+                  <span style="color: #FF0000; font-weight: 500; margin-bottom: .5rem;">El campo es requerido.</span>
+                }
+              </div>
+            }
+
+            <button class="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted shadow-none password-addon" type="button" id="password-addon">
+              <i class="ri-eye-fill align-middle"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <button class="btn btn-success w-100" type="submit">Iniciar sesión</button>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- end card body -->
