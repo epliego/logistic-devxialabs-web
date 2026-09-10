@@ -1,30 +1,34 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { environment } from '../enviroments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
-export class PaquetesService {
+export class InternalService {
   constructor(private http: HttpClient) {}
 
   /**
-   * Obtener los Shipments desde la API
-   * @param estado
+   * Shipments List
+   * @param status_id
    * @param offset
    * @param search
    * @param limit
    * @param order
+   * @param access_token
    */
-  public obtenerPaquetes(
-    estado: string = '',
+  public shipmentsList(
+    status_id: string = '',
     offset: string,
     search: string,
     limit: string,
     order: string,
+    access_token: string,
   ) {
     return this.http.get(
-      'http://localhost:3000/api/paquetes?estado=' +
-        estado +
+      environment.URL_BASE_NESTJS +
+        'internal/shipments?status_id=' +
+        status_id +
         '&offset=' +
         offset +
         '&search=' +
@@ -33,15 +37,25 @@ export class PaquetesService {
         limit +
         '&order=' +
         order,
+      {
+        headers: new HttpHeaders({
+          Authorization: 'Bearer ' + access_token,
+        }),
+      },
     );
   }
 
   /**
-   * Crear un nuevo Paquete
+   * Create new Shipment
    * @param payload
+   * @param access_token
    */
-  public crearPaquete(payload: any) {
-    return this.http.post('http://localhost:3000/api/paquetes', payload);
+  public createShipment(payload: any, access_token: string) {
+    return this.http.post(environment.URL_BASE_NESTJS + 'internal/shipments', payload, {
+      headers: new HttpHeaders({
+        Authorization: 'Bearer ' + access_token,
+      }),
+    });
   }
 
   /**

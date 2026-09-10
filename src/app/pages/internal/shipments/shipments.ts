@@ -1,8 +1,11 @@
 import { ChangeDetectorRef, Component, inject, signal } from '@angular/core';
 import { tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
+import { jwtDecode } from 'jwt-decode';
+import { AuthUserType } from '../../../types/auth-user.type';
 import { LoadResourcesService } from '../../../services/load-resources.service';
-import { PaquetesService } from '../../../services/paquetes.service';
+import { InternalService } from '../../../services/internal.service';
+import { ValuesCatalogService } from '../../../services/values-catalog.service';
 
 const $ = (window as any).$;
 
@@ -35,14 +38,19 @@ const SCRIPTS_DATATABLE = [
 export class Shipments {
   protected readonly title = signal('Internal - Shipments');
 
-  private readonly paquetesService = inject(PaquetesService);
+  private readonly valuesCatalogService = inject(ValuesCatalogService);
+  private readonly internalService = inject(InternalService);
   private readonly cdr = inject(ChangeDetectorRef);
-  private readonly cargarRecursos = inject(LoadResourcesService);
+  private readonly loadResources = inject(LoadResourcesService);
   private router = inject(Router);
 
-  private datatable_listado_paquetes: any;
+  private datatable_shipments_list: any;
 
-  private estado: string = '';
+  private status_id: string = '';
+
+  public status_options: any[] = [];
+
+  public user_profile_name: string = '';
 
   public async ngOnInit(): Promise<void> {
     if (
@@ -52,9 +60,15 @@ export class Shipments {
       await this.router.navigate(['/']);
     }
 
+    const access_token_decoded = jwtDecode<AuthUserType>(
+      localStorage.getItem('internal_user_token')!,
+    );
+
+    this.user_profile_name = access_token_decoded.user_profile_name;
+
     try {
-      await this.cargarRecursos.cargarEstilos(ESTILOS_DATATABLE);
-      await this.cargarRecursos.cargarScripts(SCRIPTS_DATATABLE);
+      await this.loadResources.loadEstilos(ESTILOS_DATATABLE);
+      await this.loadResources.loadScripts(SCRIPTS_DATATABLE);
     } catch (error) {
       console.warn('No se pudieron cargar los recursos del DataTable:', error);
 
@@ -67,23 +81,29 @@ export class Shipments {
       return;
     }
 
-    this.inicializarDataTableListadoPaquetes(this.estado);
+    this.valuesCatalogService
+      .valuesCatalog({ category: 'SHIPMENT STATUS' }, localStorage.getItem('internal_user_token')!)
+      .subscribe((res: any) => {
+        this.status_options = res.data[0];
+      });
 
-    this.formularioCrearPaquete();
+    this.initializeDataTableShipmentsList(this.status_id);
+
+    this.createShipmentForm();
 
     this.formularioActualizarEstadoPaquete();
   }
 
   /**
-   * Datatable Listado de Shipments
+   * Datatable Shipments List
    * @private
    */
-  private inicializarDataTableListadoPaquetes(estado: string): void {
-    if ($.fn.DataTable && $.fn.dataTable.isDataTable('.js-listado-shipments')) {
-      this.datatable_listado_paquetes.destroy();
+  private initializeDataTableShipmentsList(status_id: string): void {
+    if ($.fn.DataTable && $.fn.dataTable.isDataTable('.js-list-shipments')) {
+      this.datatable_shipments_list.destroy();
     }
 
-    this.datatable_listado_paquetes = $('.js-listado-shipments').DataTable({
+    this.datatable_shipments_list = $('.js-list-shipments').DataTable({
       processing: true,
       serverSide: true,
       paging: true,
@@ -92,46 +112,47 @@ export class Shipments {
         [10, 25, 50, 100],
         [10, 25, 50, 100],
       ],
-      ajax: (dataTablesParameters: any, callback: (data: any) => void) => {
+      ajax: (dataTables_parameters: any, callback: (data: any) => void) => {
         // Consultado (08-2026) en: https://l-lin.github.io/angular-datatables/#/basic/new-server-side
-        // console.log(dataTablesParameters);
-        this.paquetesService
-          .obtenerPaquetes(
-            estado,
-            dataTablesParameters.start,
-            dataTablesParameters.search.value,
-            dataTablesParameters.length,
-            dataTablesParameters.order[0].dir,
+        // console.log(dataTables_parameters);
+        this.internalService
+          .shipmentsList(
+            status_id,
+            dataTables_parameters.start,
+            dataTables_parameters.search.value,
+            dataTables_parameters.length,
+            dataTables_parameters.order[0].dir,
+            localStorage.getItem('internal_user_token')!,
           )
           .subscribe((res: any) => {
             this.cdr.detectChanges();
 
-            const arreglo_data: any[] = [];
-            for (const paquete of res.data[0].listado_paquetes) {
+            const array_data: any[] = [];
+            for (const shipment of res.data[0].list_shipments) {
               let estado_option =
                 '                  <option value="REGISTRADO">REGISTRADO</option>' +
                 '                  <option value="EN_TRANSITO">EN_TRANSITO</option>' +
                 '                  <option value="ENTREGADO">ENTREGADO</option>' +
                 '                  <option value="DEVUELTO">DEVUELTO</option>';
-              if (paquete.estado === 'REGISTRADO') {
+              if (shipment.status === 'REGISTRADO') {
                 estado_option =
                   '                  <option value="REGISTRADO" selected>REGISTRADO</option>' +
                   '                  <option value="EN_TRANSITO">EN_TRANSITO</option>' +
                   '                  <option value="ENTREGADO">ENTREGADO</option>' +
                   '                  <option value="DEVUELTO">DEVUELTO</option>';
-              } else if (paquete.estado === 'EN_TRANSITO') {
+              } else if (shipment.status === 'EN_TRANSITO') {
                 estado_option =
                   '                  <option value="REGISTRADO">REGISTRADO</option>' +
                   '                  <option value="EN_TRANSITO" selected>EN_TRANSITO</option>' +
                   '                  <option value="ENTREGADO">ENTREGADO</option>' +
                   '                  <option value="DEVUELTO">DEVUELTO</option>';
-              } else if (paquete.estado === 'ENTREGADO') {
+              } else if (shipment.status === 'ENTREGADO') {
                 estado_option =
                   '                  <option value="REGISTRADO">REGISTRADO</option>' +
                   '                  <option value="EN_TRANSITO">EN_TRANSITO</option>' +
                   '                  <option value="ENTREGADO" selected>ENTREGADO</option>' +
                   '                  <option value="DEVUELTO">DEVUELTO</option>';
-              } else if (paquete.estado === 'DEVUELTO') {
+              } else if (shipment.status === 'DEVUELTO') {
                 estado_option =
                   '                  <option value="REGISTRADO">REGISTRADO</option>' +
                   '                  <option value="EN_TRANSITO">EN_TRANSITO</option>' +
@@ -139,33 +160,38 @@ export class Shipments {
                   '                  <option value="DEVUELTO" selected>DEVUELTO</option>';
               }
 
-              arreglo_data.push({
-                id: paquete.id,
-                codigo_guia: paquete.codigo_guia,
-                destinatario: paquete.destinatario,
-                ciudad_destino: paquete.ciudad_destino,
-                peso_kg: paquete.peso_kg,
-                estado: paquete.estado,
-                creado_en: paquete.creado_en,
-                acciones:
+              array_data.push({
+                shipment_id: shipment.shipment_id,
+                guide_code: shipment.guide_code,
+                provenance_direction: shipment.provenance_direction,
+                destination_direction: shipment.destination_direction,
+                status: shipment.status,
+                date: shipment.insert_date,
+                actions:
                   '<div class="dropdown d-inline-block">' +
                   '  <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">' +
                   '    <i class="ri-more-fill align-middle"></i>' +
                   '  </button>' +
                   '  <ul class="dropdown-menu dropdown-menu-end">' +
                   '    <li>' +
-                  '      <a href="javascript:void(0)" class="dropdown-item ver-paquete" data-id="' + paquete.id + '">' +
+                  '      <a href="javascript:void(0)" class="dropdown-item view-shipment" data-id="' +
+                  shipment.shipment_id +
+                  '">' +
                   '        <i class="ri-file-pdf-fill align-bottom me-2 text-muted"></i>Ver' +
                   '      </a>' +
                   '    </li>' +
                   '    <li>' +
-                  '      <button type="button" class="dropdown-item remove-item-btn" data-bs-toggle="modal" data-bs-target=".actualizar-estado-modal-xl-' + paquete.id + '">' +
+                  '      <button type="button" class="dropdown-item remove-item-btn" data-bs-toggle="modal" data-bs-target=".actualizar-estado-modal-xl-' +
+                  shipment.shipment_id +
+                  '">' +
                   '        <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i>Actualizar Estado' +
                   '      </button>' +
                   '    </li>' +
                   '  </ul>' +
                   '</div>' +
-                  '<div class="modal fade actualizar-estado-modal-xl-' + paquete.id + '" tabindex="-1" role="dialog" aria-labelledby="myExtraLargeModalLabel" aria-hidden="true">' +
+                  '<div class="modal fade actualizar-estado-modal-xl-' +
+                  shipment.shipment_id +
+                  '" tabindex="-1" role="dialog" aria-labelledby="myExtraLargeModalLabel" aria-hidden="true">' +
                   '  <div class="modal-dialog modal-xl">' +
                   '    <div class="modal-content">' +
                   '      <div class="modal-header">' +
@@ -177,8 +203,14 @@ export class Shipments {
                   '        <div class="row g-3">' +
                   '          <div class="col-xxl-4 col-sm-12 input-group-lg">' +
                   '            <div class="form-line">' +
-                  '              <label for="cambio_estado' + paquete.id + '" class="col-form-label">Ver por Estado</label>' +
-                  '              <select id="cambio_estado' + paquete.id + '" name="cambio_estado' + paquete.id + '" class="form-select validate" required>' +
+                  '              <label for="cambio_estado' +
+                  shipment.shipment_id +
+                  '" class="col-form-label">Ver por Estado</label>' +
+                  '              <select id="cambio_estado' +
+                  shipment.shipment_id +
+                  '" name="cambio_estado' +
+                  shipment.shipment_id +
+                  '" class="form-select validate" required>' +
                   estado_option +
                   '              </select>' +
                   '            </div>' +
@@ -211,14 +243,14 @@ export class Shipments {
 
             if (res.statusCode === 200) {
               callback({
-                draw: Number(dataTablesParameters.draw),
-                recordsTotal: res.data[0].total_paquetes,
-                recordsFiltered: res.data[0].total_paquetes,
-                data: arreglo_data,
+                draw: Number(dataTables_parameters.draw),
+                recordsTotal: res.data[0].total_shipments,
+                recordsFiltered: res.data[0].total_shipments,
+                data: array_data,
               });
             } else {
               callback({
-                draw: Number(dataTablesParameters.draw),
+                draw: Number(dataTables_parameters.draw),
                 recordsTotal: 0,
                 recordsFiltered: 0,
                 data: 1,
@@ -227,18 +259,17 @@ export class Shipments {
           });
       },
       columns: [
-        { data: 'id' },
-        { data: 'codigo_guia' },
-        { data: 'destinatario' },
-        { data: 'ciudad_destino' },
-        { data: 'peso_kg' },
-        { data: 'estado' },
-        { data: 'creado_en' },
-        { data: 'acciones' },
+        { data: 'shipment_id' },
+        { data: 'guide_code' },
+        { data: 'provenance_direction' },
+        { data: 'destination_direction' },
+        { data: 'status' },
+        { data: 'date' },
+        { data: 'actions' },
       ],
       columnDefs: [
         {
-          targets: [2, 3, 4, 5, 6, 7],
+          targets: [2, 3, 4, 5, 6],
           orderable: false,
         },
         {
@@ -271,7 +302,7 @@ export class Shipments {
             modifier: {
               page: 'all',
             },
-            columns: [1, 2, 3, 4, 5, 6],
+            columns: [1, 2, 3, 4, 5],
           },
         },
         {
@@ -282,7 +313,7 @@ export class Shipments {
             modifier: {
               search: 'none',
             },
-            columns: [1, 2, 3, 4, 5, 6],
+            columns: [1, 2, 3, 4, 5],
           },
         },
         {
@@ -293,7 +324,7 @@ export class Shipments {
             modifier: {
               page: 'all',
             },
-            columns: [1, 2, 3, 4, 5, 6],
+            columns: [1, 2, 3, 4, 5],
           },
         },
         {
@@ -305,7 +336,7 @@ export class Shipments {
             modifier: {
               page: 'all',
             },
-            columns: [1, 2, 3, 4, 5, 6],
+            columns: [1, 2, 3, 4, 5],
           },
         },
         {
@@ -317,62 +348,68 @@ export class Shipments {
       ],
     });
 
-    $('body').on('click', '.ver-paquete', (e: any) => {
+    $('body').on('click', '.view-shipment', (e: any) => {
       const id = $(e.currentTarget).data('id');
 
-      this.router.navigate(['/backoffice/ver_paquete/' + id]);
+      this.router.navigate(['/shipments/view_shipment/' + id]);
     });
   }
 
   /**
-   * Formulario Crear Paquete
+   * Create Shipment Form
    * @private
    */
-  private formularioCrearPaquete(): void {
-    const formularioCrearPaqueteThis = this;
+  private createShipmentForm(): void {
+    const createShipmentFormThis = this;
 
-    $('#form_crear_paquete').validate({
+    $('#create_shipment_form').validate({
       highlight: function (input: unknown) {
         // console.log(input as any);
-        $(input as any).parents('.form-line').addClass('error');
+        $(input as any)
+          .parents('.form-line')
+          .addClass('error');
       },
       unhighlight: function (input: unknown) {
-        $(input as any).parents('.form-line').removeClass('error');
+        $(input as any)
+          .parents('.form-line')
+          .removeClass('error');
       },
       errorPlacement: function (error: unknown, element: unknown) {
-        $(element as any).parents('.input-group-lg').append(error);
+        $(element as any)
+          .parents('.input-group-lg')
+          .append(error);
       },
       submitHandler: function (form: HTMLFormElement) {
         const body = {
-          codigo_guia: $(form).find('[id="codigo_guia"]').val(),
-          destinatario: $(form).find('[id="destinatario"]').val(),
-          ciudad_destino: $(form).find('[id="ciudad_destino"]').val(),
-          peso_kg: $(form).find('[id="peso_kg"]').val(),
-          estado: $(form).find('[id="estado"]').val(),
+          provenance_direction: $(form).find('[id="provenance_direction"]').val(),
+          destination_direction: $(form).find('[id="destination_direction"]').val(),
+          recipient_name: $(form).find('[id="recipient_name"]').val(),
+          recipient_phone: $(form).find('[id="recipient_phone"]').val(),
+          weight_kg: Number($(form).find('[id="weight_kg"]').val()),
         };
 
-        formularioCrearPaqueteThis.paquetesService
-          .crearPaquete(body)
+        createShipmentFormThis.internalService
+          .createShipment(body, localStorage.getItem('internal_user_token')!)
           .pipe(
             tap(() => {
-              // formularioCrearPaqueteThis.isLoading = true;
+              // createShipmentFormThis.isLoading = true;
               // console.log('beforeSend: Spinner activated, UI disabled.');
-              $('.button-crear-paquete').attr('disabled', true);
+              $('.button-create-shipment').attr('disabled', true);
 
               $('.text-send').css('display', 'none');
 
-              $('.button-crear-paquete').addClass('btn-load');
+              $('.button-create-shipment').addClass('btn-load');
 
               $('.spinner-border').css('display', 'block');
               $('.flex-grow-1').css('display', 'block');
             }),
             tap({
               next: (response: any) => {
-                // formularioCrearPaqueteThis.isLoading = false;
+                // createShipmentFormThis.isLoading = false;
                 // console.log('Success callback: Data saved!', response);
 
                 if (response.statusCode === 201) {
-                  $('.crear-paquete-modal-xl').modal('hide');
+                  $('.create-shipment-modal-xl').modal('hide');
 
                   Toastify({
                     text: response.message,
@@ -383,14 +420,15 @@ export class Shipments {
                     },
                   }).showToast(); //Consulted (12-2023) in: https://apvarun.github.io/toastify-js/, https://github.com/apvarun/toastify-js/blob/master/README.md
 
-                  $('#form_crear_paquete')[0].reset();
-                  $(form).find('[id="codigo_guia"]').val(null);
-                  $(form).find('[id="destinatario"]').val(null);
-                  $(form).find('[id="ciudad_destino"]').val(null);
-                  $(form).find('[id="peso_kg"]').val(null);
+                  $('#create_shipment_form')[0].reset();
+                  $(form).find('[id="provenance_direction"]').val(null);
+                  $(form).find('[id="destination_direction"]').val(null);
+                  $(form).find('[id="recipient_name"]').val(null);
+                  $(form).find('[id="recipient_phone"]').val(null);
+                  $(form).find('[id="weight_kg"]').val(null);
 
-                  formularioCrearPaqueteThis.inicializarDataTableListadoPaquetes(
-                    formularioCrearPaqueteThis.estado,
+                  createShipmentFormThis.initializeDataTableShipmentsList(
+                    createShipmentFormThis.status_id,
                   );
                 } else {
                   let message_text;
@@ -410,21 +448,31 @@ export class Shipments {
                   }).showToast(); //Consulted (12-2023) in: https://apvarun.github.io/toastify-js/, https://github.com/apvarun/toastify-js/blob/master/README.md
                 }
 
-                $('.button-crear-paquete').attr('disabled', false);
+                $('.button-create-shipment').attr('disabled', false);
 
                 $('.text-send').css('display', 'block');
 
-                $('.button-crear-paquete').removeClass('btn-load');
+                $('.button-create-shipment').removeClass('btn-load');
 
                 $('.spinner-border').css('display', 'none');
                 $('.flex-grow-1').css('display', 'none');
               },
               error: (error: any) => {
-                // formularioCrearPaqueteThis.isLoading = false;
-                // console.error('Error callback:', error);
+                // createShipmentFormThis.isLoading = false;
+                // console.error(error);
+                let message_text;
+                if (error.error.statusCode === 400) {
+                  if (error.error.errors !== undefined) {
+                    message_text = error.error.errors.join(',\n');
+                  } else {
+                    message_text = error.error.message.join(',\n');
+                  }
+                } else {
+                  message_text = error.message;
+                }
 
                 Toastify({
-                  text: 'Error: ' + error.message,
+                  text: 'Error:\n' + message_text,
                   duration: 5000,
                   position: 'center',
                   style: {
@@ -432,11 +480,11 @@ export class Shipments {
                   },
                 }).showToast(); //Consulted (12-2023) in: https://github.com/apvarun/toastify-js/blob/master/README.md
 
-                $('.button-crear-paquete').attr('disabled', false);
+                $('.button-create-shipment').attr('disabled', false);
 
                 $('.text-send').css('display', 'block');
 
-                $('.button-crear-paquete').removeClass('btn-load');
+                $('.button-create-shipment').removeClass('btn-load');
 
                 $('.spinner-border').css('display', 'none');
                 $('.flex-grow-1').css('display', 'none');
@@ -451,14 +499,14 @@ export class Shipments {
   }
 
   /**
-   * Listado de Shipments por Estado
+   * Shipments by Status
    * @param event
    */
-  public paquetesPorEstado(event: Event): void {
-    // this.inicializarDataTableListadoPaquetes($('#encontrar_por_estado').val());
+  public shipmentsByStatus(event: Event): void {
+    // this.initializeDataTableShipmentsList($('#find_by_status').val());
     const element = event.target as HTMLInputElement;
     // console.log('New Value:', element.value);
-    this.inicializarDataTableListadoPaquetes(element.value);
+    this.initializeDataTableShipmentsList(element.value);
   }
 
   /**
@@ -469,7 +517,7 @@ export class Shipments {
     const formularioActualizarEstadoPaqueteThis = this;
 
     $('body').on('click', '.button-actualizar-estado-paquete', function (event: any) {
-      let tabla = formularioActualizarEstadoPaqueteThis.datatable_listado_paquetes
+      let tabla = formularioActualizarEstadoPaqueteThis.datatable_shipments_list
         .row($(event.target).parents('tr'))
         .data();
       // console.log(tabla.id);
@@ -479,7 +527,7 @@ export class Shipments {
         estado: $('#cambio_estado' + tabla.id).val(),
       };
 
-      formularioActualizarEstadoPaqueteThis.paquetesService
+      formularioActualizarEstadoPaqueteThis.internalService
         .actualizarEstadoPaquete(body, tabla.id)
         .pipe(
           tap(() => {
@@ -496,7 +544,7 @@ export class Shipments {
           }),
           tap({
             next: (response: any) => {
-              // formularioCrearPaqueteThis.isLoading = false;
+              // createShipmentFormThis.isLoading = false;
               // console.log('Success callback: Data saved!', response);
 
               if (response.statusCode === 200) {
@@ -511,8 +559,8 @@ export class Shipments {
                   },
                 }).showToast(); //Consulted (12-2023) in: https://apvarun.github.io/toastify-js/, https://github.com/apvarun/toastify-js/blob/master/README.md
 
-                formularioActualizarEstadoPaqueteThis.inicializarDataTableListadoPaquetes(
-                  formularioActualizarEstadoPaqueteThis.estado,
+                formularioActualizarEstadoPaqueteThis.initializeDataTableShipmentsList(
+                  formularioActualizarEstadoPaqueteThis.status_id,
                 );
               } else {
                 let message_text;
@@ -542,7 +590,7 @@ export class Shipments {
               $('.flex-grow-1').css('display', 'none');
             },
             error: (error: any) => {
-              // formularioCrearPaqueteThis.isLoading = false;
+              // createShipmentFormThis.isLoading = false;
               // console.error('Error callback:', error);
 
               Toastify({

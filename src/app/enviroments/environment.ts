@@ -6,12 +6,19 @@ declare const __INTERNAL_ACCESS_TOKEN_EXPIRES_IN__: string;
 export const environment = {
   // JWT CONFIGURATION
   INTERNAL_SECRET_ACCESS_TOKEN:
-    __INTERNAL_SECRET_ACCESS_TOKEN__ || '1nt3rn4ls3cr3tk3y4cc3ss4p1k3yD3vx14l4bs;',
-  INTERNAL_ACCESS_TOKEN_EXPIRES_IN: __INTERNAL_ACCESS_TOKEN_EXPIRES_IN__ || '25200s',
+    typeof __INTERNAL_SECRET_ACCESS_TOKEN__ !== 'undefined'
+      ? __INTERNAL_SECRET_ACCESS_TOKEN__
+      : '1nt3rn4ls3cr3tk3y4cc3ss4p1k3yD3vx14l4bs;',
+  INTERNAL_ACCESS_TOKEN_EXPIRES_IN:
+    typeof __INTERNAL_ACCESS_TOKEN_EXPIRES_IN__ !== 'undefined'
+      ? __INTERNAL_ACCESS_TOKEN_EXPIRES_IN__
+      : '25200s',
 
   // URL BASE NESTJS
-  URL_BASE_NESTJS: __URL_BASE_NESTJS__ || 'http://localhost:3000',
+  URL_BASE_NESTJS:
+    typeof __URL_BASE_NESTJS__ !== 'undefined' ? __URL_BASE_NESTJS__ : 'http://localhost:3000/v1/',
 
   // URL BASE ANGULAR
-  URL_BASE_ANGULAR: __URL_BASE_ANGULAR__ || 'http://localhost:4200/',
+  URL_BASE_ANGULAR:
+    typeof __URL_BASE_ANGULAR__ !== 'undefined' ? __URL_BASE_ANGULAR__ : 'http://localhost:4200/',
 };

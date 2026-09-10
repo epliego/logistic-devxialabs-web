@@ -6,17 +6,17 @@ import { Injectable } from '@angular/core';
 export class LoadResourcesService {
   private readonly recursosCargados = new Set<string>();
 
-  public async cargarEstilos(urls: string[]): Promise<void> {
-    await Promise.all(urls.map((url) => this.cargarEstilo(url)));
+  public async loadEstilos(urls: string[]): Promise<void> {
+    await Promise.all(urls.map((url) => this.loadEstile(url)));
   }
 
-  public async cargarScripts(urls: string[]): Promise<void> {
+  public async loadScripts(urls: string[]): Promise<void> {
     for (const url of urls) {
-      await this.cargarScript(url);
+      await this.loadScript(url);
     }
   }
 
-  private cargarEstilo(url: string): Promise<void> {
+  private loadEstile(url: string): Promise<void> {
     if (this.recursosCargados.has(url)) {
       return Promise.resolve();
     }
@@ -35,7 +35,7 @@ export class LoadResourcesService {
     });
   }
 
-  private cargarScript(url: string): Promise<void> {
+  private loadScript(url: string): Promise<void> {
     if (this.recursosCargados.has(url)) {
       return Promise.resolve();
     }

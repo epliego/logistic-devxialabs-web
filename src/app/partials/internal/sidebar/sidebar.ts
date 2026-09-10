@@ -15,7 +15,10 @@ export class Sidebar {
   public user_profile_name: string = '';
 
   public async ngOnInit(): Promise<void> {
-    if (localStorage.getItem('internal_user_token')) {
+    if (
+      localStorage.getItem('internal_user_token') &&
+      localStorage.getItem('internal_user_token') !== ''
+    ) {
       const access_token_decoded = jwtDecode<AuthUserType>(
         localStorage.getItem('internal_user_token')!,
       );

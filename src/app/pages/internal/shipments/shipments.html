@@ -1,25 +1,26 @@
 <div class="col-lg-12">
   <div class="card">
     <div class="card-header">
-      <h5 class="card-title mb-0">Listado de Shipments</h5>
+      <h5 class="card-title mb-0">Listado de Envíos</h5>
     </div>
     <div class="card-body">
-      <div style="text-align: center;">
-        <button type="button" class="btn btn-success waves-effect waves-light" data-bs-toggle="modal" data-bs-target=".crear-paquete-modal-xl">
-          Agregar Paquete
-        </button>
-      </div>
+      @if (this.user_profile_name === 'Operador') {
+        <div style="text-align: center;">
+          <button type="button" class="btn btn-success waves-effect waves-light" data-bs-toggle="modal" data-bs-target=".create-shipment-modal-xl">
+            Agregar Envío
+          </button>
+        </div>
+      }
 
       <div class="row g-3">
         <div class="col-xxl-4 col-sm-12 input-group-lg">
           <div class="form-line">
-            <label for="encontrar_por_estado" class="col-form-label">Ver por Estado</label>
-            <select id="encontrar_por_estado" name="encontrar_por_estado" class="form-select validate" (change)="paquetesPorEstado($event)" required>
+            <label for="find_by_status" class="col-form-label">Ver por Estado</label>
+            <select id="find_by_status" name="find_by_status" class="form-select validate" (change)="shipmentsByStatus($event)" required>
               <option value="">TODOS</option>
-              <option value="REGISTRADO">REGISTRADO</option>
-              <option value="EN_TRANSITO">EN_TRANSITO</option>
-              <option value="ENTREGADO">ENTREGADO</option>
-              <option value="DEVUELTO">DEVUELTO</option>
+              @for (option of this.status_options; track option.id) {
+                <option value="{{ option.id }}">{{ option.name }}</option>
+              }
             </select>
           </div>
         </div>
@@ -27,28 +28,26 @@
 
       <br/>
 
-      <table id="js-listado-paquetes" class="display table table-bordered dt-responsive js-listado-paquetes compact" style="width:100%">
+      <table id="js-list-shipments" class="display table table-bordered dt-responsive js-list-shipments compact" style="width:100%">
         <thead>
           <tr>
-            <th>paquete_id</th>
-            <th>Código guía</th>
+            <th>shipment_id</th>
+            <th>Código de seguimiento</th>
             <th>Destinatario</th>
-            <th>Ciudad destino</th>
-            <th>Peso (Kg)</th>
+            <th>Destino</th>
             <th>Estado</th>
-            <th>Creado en</th>
+            <th>Fecha registro</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tfoot>
           <tr>
-            <th>paquete_id</th>
-            <th>Código guía</th>
+            <th>shipment_id</th>
+            <th>Código de seguimiento</th>
             <th>Destinatario</th>
-            <th>Ciudad destino</th>
-            <th>Peso (Kg)</th>
+            <th>Destino</th>
             <th>Estado</th>
-            <th>Creado en</th>
+            <th>Fecha registro</th>
             <th>Acciones</th>
           </tr>
         </tfoot>
@@ -58,60 +57,55 @@
 </div>
 
 <!--  Extra Large modal example -->
-<div class="modal fade crear-paquete-modal-xl" tabindex="-1" role="dialog" aria-labelledby="myExtraLargeModalLabel" aria-hidden="true">
+<div class="modal fade create-shipment-modal-xl" tabindex="-1" role="dialog" aria-labelledby="myExtraLargeModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
-      <form id="form_crear_paquete" method="POST">
+      <form id="create_shipment_form" method="POST">
         <div class="modal-header">
-          <h5 class="modal-title" id="myExtraLargeModalLabel">Registrar nuevo Paquete</h5>
+          <h5 class="modal-title" id="myExtraLargeModalLabel">Registrar Nuevo Envío</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
           <div class="row g-3">
             <div class="col-xxl-6 col-sm-12 input-group-lg">
               <div class="form-line">
-                <label for="codigo_guia" class="col-form-label">Código Guía</label>
-                <input id="codigo_guia" name="codigo_guia" type="text" class="form-control validate" required>
+                <label for="provenance_direction" class="col-form-label">Destinatario</label>
+                <input id="provenance_direction" name="provenance_direction" type="text" class="form-control validate" required>
               </div>
             </div>
 
             <div class="col-xxl-6 col-sm-12 input-group-lg">
               <div class="form-line">
-                <label for="destinatario" class="col-form-label">Destinatario</label>
-                <input id="destinatario" name="destinatario" type="text" class="form-control validate" required>
+                <label for="destination_direction" class="col-form-label">Destino</label>
+                <input id="destination_direction" name="destination_direction" type="text" class="form-control validate" required>
               </div>
             </div>
 
             <div class="col-xxl-6 col-sm-12 input-group-lg">
               <div class="form-line">
-                <label for="ciudad_destino" class="col-form-label">Ciudad destino</label>
-                <input id="ciudad_destino" name="ciudad_destino" type="text" class="form-control validate" required>
+                <label for="recipient_name" class="col-form-label">A nombre de (Nombre completo)</label>
+                <input id="recipient_name" name="recipient_name" type="text" class="form-control validate" required>
               </div>
             </div>
 
             <div class="col-xxl-6 col-sm-12 input-group-lg">
               <div class="form-line">
-                <label for="peso_kg" class="col-form-label">Peso (Kg)</label>
-                <input id="peso_kg" name="peso_kg" type="number" class="form-control validate" min="1" required>
+                <label for="recipient_phone" class="col-form-label">Teléfono de contacto</label>
+                <input id="recipient_phone" name="recipient_phone" type="number" class="form-control validate">
               </div>
             </div>
 
             <div class="col-xxl-6 col-sm-12 input-group-lg">
               <div class="form-line">
-                <label for="estado" class="col-form-label">Estado</label>
-                <select id="estado" name="estado" class="form-select validate" required>
-                  <option value="REGISTRADO">REGISTRADO</option>
-                  <option value="EN_TRANSITO">EN_TRANSITO</option>
-                  <option value="ENTREGADO">ENTREGADO</option>
-                  <option value="DEVUELTO">DEVUELTO</option>
-                </select>
+                <label for="weight_kg" class="col-form-label">Peso (Kg)</label>
+                <input id="weight_kg" name="weight_kg" type="number" class="form-control validate" min="1" required>
               </div>
             </div>
           </div>
         </div>
         <div class="modal-footer">
           <a href="javascript:void(0);" class="btn btn-link link-success shadow-none fw-medium" data-bs-dismiss="modal"><i class="ri-close-line me-1 align-middle"></i>Cerrar</a>
-          <button type="submit" class="btn btn-primary button-crear-paquete">
+          <button type="submit" class="btn btn-primary button-create-shipment">
             <div class="text-send">
               Guardar
             </div>

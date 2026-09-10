@@ -3,7 +3,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { tap } from 'rxjs/operators';
-import { PaquetesService } from '../../../services/paquetes.service';
+import { InternalService } from '../../../services/internal.service';
 
 const $ = (window as any).$;
 
@@ -21,7 +21,7 @@ export class ViewShipment {
   protected readonly paqueteId = signal<number | null>(null);
   private readonly route = inject(ActivatedRoute);
 
-  private readonly paquetesService = inject(PaquetesService);
+  private readonly paquetesService = inject(InternalService);
 
   formActualizarPaquete!: FormGroup;
 
