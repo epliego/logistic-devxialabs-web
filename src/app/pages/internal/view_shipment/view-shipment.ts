@@ -52,7 +52,7 @@ export class ViewShipment {
       recipient_name: ['', [Validators.required, Validators.min(1)]],
       recipient_phone: [],
       weight_kg: ['', [Validators.required]],
-      status: ['', Validators.required],
+      status_name: ['', Validators.required],
     });
   }
 
@@ -72,7 +72,7 @@ export class ViewShipment {
           recipient_name: res.data[0].recipient_name,
           recipient_phone: res.data[0].recipient_phone,
           weight_kg: res.data[0].weight_kg,
-          status: res.data[0].status,
+          status_name: res.data[0].status,
         });
       });
   }

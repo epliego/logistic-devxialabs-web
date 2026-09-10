@@ -1,7 +1,7 @@
 <div class="col-lg-12">
   <div class="card">
     <div class="card-header">
-      <h5 class="card-title mb-0">Ver Paquete</h5>
+      <h5 class="card-title mb-0">Ver Envío</h5>
     </div>
     <div class="card-body">
       <form [formGroup]="updateShipmentForm" (ngSubmit)="onSubmit()">
@@ -94,11 +94,11 @@
 
           <div class="col-xxl-6 col-sm-12 input-group-lg">
             <div class="form-line">
-              <label for="status" class="col-form-label">Estado</label>
-              <input id="status" formControlName="status" type="text" class="form-control validate" required readonly>
-              @if (updateShipmentForm.get('status')?.invalid && (updateShipmentForm.get('status')?.dirty || updateShipmentForm.get('status')?.touched)) {
+              <label for="status_name" class="col-form-label">Estado</label>
+              <input id="status_name" formControlName="status_name" type="text" class="form-control validate" required readonly>
+              @if (updateShipmentForm.get('status_name')?.invalid && (updateShipmentForm.get('status_name')?.dirty || updateShipmentForm.get('status_name')?.touched)) {
                 <div class="error">
-                  @if (updateShipmentForm.get('status')?.errors?.['required']) {
+                  @if (updateShipmentForm.get('status_name')?.errors?.['required']) {
                     <span style="color: #FF0000; font-weight: 500; margin-bottom: .5rem;">El campo es requerido.</span>
                   }
                 </div>
