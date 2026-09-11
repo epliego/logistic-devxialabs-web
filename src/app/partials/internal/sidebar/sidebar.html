@@ -41,8 +41,8 @@
 
         @if (this.user_profile_name === 'Supervisor') {
           <li class="nav-item">
-            <a class="nav-link menu-link" href="#">
-              <i class="mdi mdi-nut"></i> <span data-key="t-home">Agregar Usuario</span>
+            <a class="nav-link menu-link" routerLink="/internal/add_user" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+              <i class="mdi mdi-nut"></i> <span data-key="t-tasks">Agregar Usuario</span>
             </a>
           </li>
         }

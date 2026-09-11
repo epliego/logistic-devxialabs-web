@@ -1,0 +1,97 @@
+<div class="col-lg-12">
+  <!-- Card Shipment Details -->
+  <div class="card">
+    <div class="card-header">
+      <h5 class="card-title mb-0">Agregar Usuario</h5>
+    </div>
+    <div class="card-body">
+      <form [formGroup]="add_user_form" (ngSubmit)="onSubmit()">
+        <div class="row g-3">
+          <div class="col-xxl-6 col-sm-12 input-group-lg">
+            <div class="form-line">
+              <label for="email" class="col-form-label">Email</label>
+              <input id="email" formControlName="email" type="text" class="form-control validate" required>
+              @if (add_user_form.get('email')?.invalid && (add_user_form.get('email')?.dirty || add_user_form.get('email')?.touched)) {
+                <div class="error">
+                  @if (add_user_form.get('email')?.errors?.['required']) {
+                    <span style="color: #FF0000; font-weight: 500; margin-bottom: .5rem;">El campo es requerido.</span>
+                  }
+                  @if (add_user_form.get('email')?.errors?.['email']) {
+                    <span style="color: #FF0000; font-weight: 500; margin-bottom: .5rem;">El email no es válido.</span>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="col-xxl-6 col-sm-12 input-group-lg">
+            <div class="form-line">
+              <label for="name" class="col-form-label">Nombre</label>
+              <input id="name" formControlName="name" type="text" class="form-control validate" required>
+              @if (add_user_form.get('name')?.invalid && (add_user_form.get('name')?.dirty || add_user_form.get('name')?.touched)) {
+                <div class="error">
+                  @if (add_user_form.get('name')?.errors?.['required']) {
+                    <span style="color: #FF0000; font-weight: 500; margin-bottom: .5rem;">El campo es requerido.</span>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="col-xxl-6 col-sm-12 input-group-lg">
+            <div class="form-line">
+              <label for="password" class="col-form-label">Password</label>
+              <input id="password" formControlName="password" type="text" class="form-control validate" required>
+              @if (add_user_form.get('password')?.invalid && (add_user_form.get('password')?.dirty || add_user_form.get('password')?.touched)) {
+                <div class="error">
+                  @if (add_user_form.get('password')?.errors?.['required']) {
+                    <span style="color: #FF0000; font-weight: 500; margin-bottom: .5rem;">El campo es requerido.</span>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="col-xxl-6 col-sm-12 input-group-lg">
+            <div class="form-line">
+              <label for="profile_id" class="col-form-label">Ver por Estado</label>
+              <select id="profile_id" formControlName="profile_id" class="form-select validate" required>
+                <option value="">TODOS</option>
+<!--                @for (option of this.status_options; track option.id) {-->
+<!--                  <option [value]="option.id">{{ option.name }}</option>-->
+<!--                }-->
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <br/>
+
+        <div class="row g-3">
+          <div class="col-lg-6 col-md-6 col-sm-12 input-group-lg" style="text-align: right">
+            <a href="/internal/shipments" class="btn btn-danger">
+              <div class="text-send">
+                Regresar
+              </div>
+            </a>
+          </div>
+          <div class="col-lg-6 col-md-6 col-sm-12 input-group-lg" style="text-align: left">
+            <button type="submit" class="btn btn-success button-add-user">
+              <div class="text-send">
+                Guardar
+              </div>
+              <span class="d-flex align-items-center">
+                <span class="spinner-border flex-shrink-0" role="status" style="display: none;">
+                  <span class="visually-hidden">Por favor, espere...</span>
+                </span>
+                <span class="flex-grow-1 ms-2" style="display: none;">
+                  Por favor, espere...
+                </span>
+              </span>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

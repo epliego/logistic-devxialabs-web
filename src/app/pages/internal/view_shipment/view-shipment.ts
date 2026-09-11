@@ -21,7 +21,7 @@ export class ViewShipment {
   private readonly internalService = inject(InternalService);
   private readonly cdr = inject(ChangeDetectorRef);
 
-  updateShipmentForm!: FormGroup;
+  view_shipment_form!: FormGroup;
 
   private datatable_shipment_tracking_history_list: any;
 
@@ -47,11 +47,11 @@ export class ViewShipment {
   }
 
   /**
-   * Initialize Form update Shipment
+   * Initialize view Shipment Form
    * @private
    */
   private initializeForm() {
-    this.updateShipmentForm = this.fb.group({
+    this.view_shipment_form = this.fb.group({
       shipment_id: ['', [Validators.required]],
       guide_code: ['', [Validators.required]],
       provenance_direction: ['', [Validators.required]],
@@ -71,7 +71,7 @@ export class ViewShipment {
     this.internalService
       .getShipment(this.shipmentId()!.toString(), localStorage.getItem('internal_user_token')!)
       .subscribe((res: any) => {
-        this.updateShipmentForm.patchValue({
+        this.view_shipment_form.patchValue({
           shipment_id: res.data[0].shipment_id,
           guide_code: res.data[0].guide_code,
           provenance_direction: res.data[0].provenance_direction,

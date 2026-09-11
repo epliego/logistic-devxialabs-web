@@ -125,4 +125,17 @@ export class InternalService {
       },
     );
   }
+
+  /**
+   * Create new Internal User
+   * @param payload
+   * @param access_token
+   */
+  public createInternalUser(payload: any, access_token: string) {
+    return this.http.post(environment.URL_BASE_NESTJS + 'internal/auth/register', payload, {
+      headers: new HttpHeaders({
+        Authorization: 'Bearer ' + access_token,
+      }),
+    });
+  }
 }
