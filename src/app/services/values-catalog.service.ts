@@ -9,7 +9,7 @@ export class ValuesCatalogService {
   constructor(private http: HttpClient) {}
 
   /**
-   * Internal user login
+   * Get value catalog list
    * @param payload
    * @param access_token
    */

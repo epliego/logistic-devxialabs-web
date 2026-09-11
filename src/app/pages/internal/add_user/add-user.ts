@@ -18,7 +18,8 @@ export class AddUser {
   protected readonly title = signal('Internal - Add User');
 
   private readonly internalService = inject(InternalService);
-  private readonly cdr = inject(ChangeDetectorRef);
+
+  public internal_user_profile_list = signal<any[]>([]);
 
   add_user_form!: FormGroup;
 
@@ -33,6 +34,12 @@ export class AddUser {
 
       return;
     }
+
+    this.internalService
+      .getInternalUserProfile(localStorage.getItem('internal_user_token')!)
+      .subscribe((res: any) => {
+        this.internal_user_profile_list.set(res.data[0]);
+      });
   }
 
   /**
@@ -55,8 +62,14 @@ export class AddUser {
     if (this.add_user_form.valid) {
       // console.log('Datos enviados:', this.add_user_form.value);
 
+      const profile_id = this.add_user_form.get('profile_id')?.value;
+      const body = {
+        ...this.add_user_form.value,
+        profile_id: Number.parseInt(profile_id),
+      };
+
       this.internalService
-        .createInternalUser(this.add_user_form.value, localStorage.getItem('internal_user_token')!)
+        .createInternalUser(body, localStorage.getItem('internal_user_token')!)
         .pipe(
           tap(() => {
             // this.isLoading = true;
@@ -75,15 +88,19 @@ export class AddUser {
               // this.isLoading = false;
               // console.log('Success callback: Data saved!', response);
 
-              if (response.statusCode === 200) {
+              if (response.statusCode === 201) {
                 Toastify({
-                  text: response.message,
+                  text: response.system_message.join(',\n'),
                   duration: 5000,
                   position: 'center',
                   style: {
                     background: '#4FCBB5',
                   },
                 }).showToast(); //Consulted (12-2023) in: https://apvarun.github.io/toastify-js/, https://github.com/apvarun/toastify-js/blob/master/README.md
+
+                this.add_user_form.reset({
+                  profile_id: '',
+                });
               } else {
                 let message_text;
                 if (response.errors !== undefined) {
@@ -115,8 +132,19 @@ export class AddUser {
               // formularioCrearPaqueteThis.isLoading = false;
               // console.error('Error callback:', error);
 
+              let message_text;
+              if (error.error.statusCode === 400) {
+                if (error.error.errors !== undefined) {
+                  message_text = error.error.errors.join(',\n');
+                } else {
+                  message_text = error.error.message.join(',\n');
+                }
+              } else {
+                message_text = error.message;
+              }
+
               Toastify({
-                text: 'Error: ' + error.message,
+                text: 'Error:\n' + message_text,
                 duration: 5000,
                 position: 'center',
                 style: {

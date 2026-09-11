@@ -138,4 +138,16 @@ export class InternalService {
       }),
     });
   }
+
+  /**
+   * Get internal user profile list
+   * @param access_token
+   */
+  public getInternalUserProfile(access_token: string) {
+    return this.http.get(environment.URL_BASE_NESTJS + 'internal/user-profile', {
+      headers: new HttpHeaders({
+        Authorization: 'Bearer ' + access_token,
+      }),
+    });
+  }
 }

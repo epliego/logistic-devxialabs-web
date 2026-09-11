@@ -54,12 +54,12 @@
 
           <div class="col-xxl-6 col-sm-12 input-group-lg">
             <div class="form-line">
-              <label for="profile_id" class="col-form-label">Ver por Estado</label>
+              <label for="profile_id" class="col-form-label">Perfil</label>
               <select id="profile_id" formControlName="profile_id" class="form-select validate" required>
-                <option value="">TODOS</option>
-<!--                @for (option of this.status_options; track option.id) {-->
-<!--                  <option [value]="option.id">{{ option.name }}</option>-->
-<!--                }-->
+                <option value="" selected>Seleccione un Perfil</option>
+                @for (profile of this.internal_user_profile_list(); track profile.id) {
+                  <option [value]="profile.id">{{ profile.name }}</option>
+                }
               </select>
             </div>
           </div>
