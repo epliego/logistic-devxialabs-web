@@ -45,7 +45,7 @@ export class Login {
   }
 
   /**
-   * Enviar los datos para actualizar los datos del paquete
+   * Login Internal User
    */
   onSubmit() {
     const ngOnSubmitThis = this;

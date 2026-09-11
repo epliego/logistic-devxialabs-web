@@ -11,7 +11,7 @@ const $ = (window as any).$;
 
 declare const Toastify: any;
 
-const ESTILOS_DATATABLE = [
+const STYLES_DATATABLE = [
   '/assets/libs/jquery-datatable/css/dataTables.bootstrap5.min.css',
   '/assets/libs/jquery-datatable/css/responsive.bootstrap.min.css',
   '/assets/libs/jquery-datatable/css/buttons.dataTables.min.css',
@@ -67,7 +67,7 @@ export class Shipments {
     this.user_profile_name = access_token_decoded.user_profile_name;
 
     try {
-      await this.loadResources.loadEstilos(ESTILOS_DATATABLE);
+      await this.loadResources.loadEstilos(STYLES_DATATABLE);
       await this.loadResources.loadScripts(SCRIPTS_DATATABLE);
     } catch (error) {
       console.warn('No se pudieron cargar los recursos del DataTable:', error);

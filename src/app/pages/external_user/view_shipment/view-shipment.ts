@@ -1,10 +1,28 @@
 import { Component, signal, inject, ChangeDetectorRef } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { InternalService } from '../../../services/internal.service';
+import { ExternalUserService } from '../../../services/external-user.service';
+import { LoadResourcesService } from '../../../services/load-resources.service';
 
 const $ = (window as any).$;
+
+const STYLES_DATATABLE = [
+  '/assets/libs/jquery-datatable/css/dataTables.bootstrap5.min.css',
+  '/assets/libs/jquery-datatable/css/responsive.bootstrap.min.css',
+  '/assets/libs/jquery-datatable/css/buttons.dataTables.min.css',
+];
+
+const SCRIPTS_DATATABLE = [
+  '/assets/libs/jquery-datatable/js/jquery.dataTables.min.js',
+  '/assets/libs/jquery-datatable/js/dataTables.bootstrap5.min.js',
+  '/assets/libs/jquery-datatable/js/dataTables.responsive.min.js',
+  '/assets/libs/jquery-datatable/js/dataTables.buttons.min.js',
+  '/assets/libs/jquery-datatable/js/buttons.print.min.js',
+  '/assets/libs/jquery-datatable/js/buttons.html5.min.js',
+  '/assets/libs/jquery-datatable/js/pdfmake.min.js',
+  '/assets/libs/jquery-datatable/js/vfs_fonts.min.js',
+  '/assets/libs/jquery-datatable/js/jszip.min.js',
+];
 
 @Component({
   selector: 'view-shipment-root',
@@ -13,15 +31,13 @@ const $ = (window as any).$;
   styleUrl: './view-shipment.css',
 })
 export class ViewShipment {
-  protected readonly title = signal('Internal - View Shipments');
+  protected readonly title = signal('External User - View Shipments');
 
-  protected readonly shipmentId = signal<number | null>(null);
-  private readonly route = inject(ActivatedRoute);
-
-  private readonly internalService = inject(InternalService);
+  private readonly externalUserService = inject(ExternalUserService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly loadResources = inject(LoadResourcesService);
 
-  updateShipmentForm!: FormGroup;
+  form_tracking_history_shipment!: FormGroup;
 
   private datatable_shipment_tracking_history_list: any;
 
@@ -31,11 +47,14 @@ export class ViewShipment {
   }
 
   public async ngOnInit(): Promise<void> {
-    const idStr = this.route.snapshot.paramMap.get('id');
-    const idNum = idStr ? Number(idStr) : NaN;
-    this.shipmentId.set(Number.isFinite(idNum) ? idNum : null);
+    try {
+      await this.loadResources.loadEstilos(STYLES_DATATABLE);
+      await this.loadResources.loadScripts(SCRIPTS_DATATABLE);
+    } catch (error) {
+      console.warn('No se pudieron cargar los recursos del DataTable:', error);
 
-    this.loadShipmentData();
+      return;
+    }
 
     if (typeof (window as any).$ === 'undefined') {
       console.warn('jQuery not available, skipping DataTable init');
@@ -43,45 +62,141 @@ export class ViewShipment {
       return;
     }
 
-    this.initializeDataTableShipmentTrackingHistoryList(this.shipmentId()!.toString());
-  }
+    this.datatable_shipment_tracking_history_list = $(
+      '.js-list-shipment-tracking-history',
+    ).DataTable({
+      processing: true,
+      serverSide: true,
+      paging: true,
+      ordering: true,
+      lengthMenu: [
+        [10, 25, 50, 100],
+        [10, 25, 50, 100],
+      ],
+      ajax: (dataTables_parameters: any, callback: (data: any) => void) => {
+        // Consultado (08-2026) en: https://l-lin.github.io/angular-datatables/#/basic/new-server-side
+        // console.log(dataTables_parameters);
 
-  /**
-   * Initialize Form update Shipment
-   * @private
-   */
-  private initializeForm() {
-    this.updateShipmentForm = this.fb.group({
-      shipment_id: ['', [Validators.required]],
-      guide_code: ['', [Validators.required]],
-      provenance_direction: ['', [Validators.required]],
-      destination_direction: ['', [Validators.required]],
-      recipient_name: ['', [Validators.required, Validators.min(1)]],
-      recipient_phone: [],
-      weight_kg: ['', [Validators.required]],
-      status_name: ['', Validators.required],
+        callback({
+          draw: Number(dataTables_parameters.draw),
+          recordsTotal: 0,
+          recordsFiltered: 0,
+          data: 1,
+        });
+      },
+      columns: [
+        { data: 'shipment_tracking_history_id' },
+        { data: 'guide_code' },
+        { data: 'provenance_direction' },
+        { data: 'destination_direction' },
+        { data: 'status' },
+        { data: 'date' },
+        { data: 'insert_by' },
+      ],
+      columnDefs: [
+        {
+          targets: [1, 2, 3, 4, 6],
+          orderable: false,
+        },
+        {
+          targets: [0],
+          visible: false,
+          searchable: false,
+        },
+      ],
+      searching: true,
+      dom: 'Bfrtip',
+      responsive: true,
+      language: {
+        url: '/assets/libs/jquery-datatable/language/Spanish.json', // trabajar cualquier ambiente
+        buttons: {
+          // Consultado (01-2016) en: https://datatables.net/extensions/buttons/examples/flash/copyi18n.html
+          copyTitle: 'Copiado al portapapeles',
+          copySuccess: {
+            // Consultado (01-2016) en: https://datatables.net/reference/button/copyHtml5
+            1: 'Copiada una fila al portapapeles',
+            _: 'Copiadas %d filas al portapapeles',
+          },
+        },
+        sLength: 'dataTables_length',
+      },
+      buttons: [
+        {
+          extend: 'copy',
+          text: 'Copiar',
+          exportOptions: {
+            modifier: {
+              page: 'all',
+            },
+            columns: [1, 2, 3, 4, 5, 6],
+          },
+        },
+        {
+          extend: 'csv',
+          text: 'CSV',
+          //title: $("#title").val(),
+          exportOptions: {
+            modifier: {
+              search: 'none',
+            },
+            columns: [1, 2, 3, 4, 5, 6],
+          },
+        },
+        {
+          extend: 'excel',
+          text: 'Descargar Excel',
+          // title: $("#title").val(),
+          exportOptions: {
+            modifier: {
+              page: 'all',
+            },
+            columns: [1, 2, 3, 4, 5, 6],
+          },
+        },
+        {
+          extend: 'pdf',
+          text: 'PDF',
+          // title: $("#title").val(),
+          pageSize: 'LETTER',
+          exportOptions: {
+            modifier: {
+              page: 'all',
+            },
+            columns: [1, 2, 3, 4, 5, 6],
+          },
+        },
+        {
+          extend: 'print',
+          text: 'Imprimir',
+          // title: $("#title").val(),
+          pageSize: 'LETTER',
+        },
+      ],
     });
   }
 
   /**
-   * Get Shipment data and show in Form
+   * Initialize Form Tracking History Shipment
    * @private
    */
-  private loadShipmentData() {
-    this.internalService
-      .getShipment(this.shipmentId()!.toString(), localStorage.getItem('internal_user_token')!)
-      .subscribe((res: any) => {
-        this.updateShipmentForm.patchValue({
-          shipment_id: res.data[0].shipment_id,
-          guide_code: res.data[0].guide_code,
-          provenance_direction: res.data[0].provenance_direction,
-          destination_direction: res.data[0].destination_direction,
-          recipient_name: res.data[0].recipient_name,
-          recipient_phone: res.data[0].recipient_phone,
-          weight_kg: res.data[0].weight_kg,
-          status_name: res.data[0].status,
-        });
-      });
+  private initializeForm() {
+    this.form_tracking_history_shipment = this.fb.group({
+      tracking_code: ['', [Validators.required]],
+    });
+  }
+
+  /**
+   * View Tracking History Shipment in Datatable
+   */
+  onSubmit() {
+    const ngOnSubmitThis = this;
+
+    if (this.form_tracking_history_shipment.valid) {
+      // console.log('Sent data:', this.form_tracking_history_shipment.value);
+      const tracking_code = this.form_tracking_history_shipment.value;
+
+      this.initializeDataTableShipmentTrackingHistoryList(tracking_code.tracking_code);
+    }
   }
 
   /**
@@ -107,8 +222,8 @@ export class ViewShipment {
       ajax: (dataTables_parameters: any, callback: (data: any) => void) => {
         // Consultado (08-2026) en: https://l-lin.github.io/angular-datatables/#/basic/new-server-side
         // console.log(dataTables_parameters);
-        this.internalService
-          .shipmentTrackingHistoryList(
+        this.externalUserService
+          .trackingHistoryShipment(
             shipment_id,
             dataTables_parameters.start,
             dataTables_parameters.search.value,

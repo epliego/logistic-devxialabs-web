@@ -1,0 +1,74 @@
+<div class="col-lg-12">
+  <!-- Card Shipment Tracking History -->
+  <div class="card">
+    <div class="card-header">
+      <h5 class="card-title mb-0">Ver Historial del Envío</h5>
+    </div>
+    <div class="card-body">
+      <form [formGroup]="form_tracking_history_shipment" (ngSubmit)="onSubmit()">
+        <div class="row g-3">
+          <div class="col-xxl-6 col-sm-12 input-group-lg">
+            <div class="form-line">
+              <label for="tracking_code" class="col-form-label">Código de seguimiento</label>
+              <input id="tracking_code" formControlName="tracking_code" type="text" class="form-control validate" required>
+              @if (form_tracking_history_shipment.get('tracking_code')?.invalid && (form_tracking_history_shipment.get('tracking_code')?.dirty || form_tracking_history_shipment.get('tracking_code')?.touched)) {
+                <div class="error">
+                  @if (form_tracking_history_shipment.get('tracking_code')?.errors?.['required']) {
+                    <span style="color: #FF0000; font-weight: 500; margin-bottom: .5rem;">El campo es requerido.</span>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <br/>
+
+        <div class="row g-3">
+          <div class="col-lg-6 col-md-6 col-sm-12 input-group-lg" style="text-align: left">
+            <button type="submit" class="btn btn-success button-tracking-history-shipment">
+              <div class="text-send">
+                Buscar
+              </div>
+              <span class="d-flex align-items-center">
+                <span class="spinner-border flex-shrink-0" role="status" style="display: none;">
+                  <span class="visually-hidden">Por favor, espere...</span>
+                </span>
+                <span class="flex-grow-1 ms-2" style="display: none;">
+                  Por favor, espere...
+                </span>
+              </span>
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <br/>
+
+      <table id="js-list-shipment-tracking-history" class="display table table-bordered dt-responsive js-list-shipment-tracking-history compact" style="width:100%">
+        <thead>
+          <tr>
+            <th>shipment_tracking_history_id</th>
+            <th>Código de seguimiento</th>
+            <th>Destinatario</th>
+            <th>Destino</th>
+            <th>Estado</th>
+            <th>Fecha registro</th>
+            <th>Registrado por</th>
+          </tr>
+        </thead>
+        <tfoot>
+          <tr>
+            <th>shipment_tracking_history_id</th>
+            <th>Código de seguimiento</th>
+            <th>Destinatario</th>
+            <th>Destino</th>
+            <th>Estado</th>
+            <th>Fecha registro</th>
+            <th>Registrado por</th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>
