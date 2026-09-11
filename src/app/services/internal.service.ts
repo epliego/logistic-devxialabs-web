@@ -81,11 +81,39 @@ export class InternalService {
   }
 
   /**
-   * Actualiza datos del Paquete
-   * @param payload
-   * @param id
+   * Shipments Tracking History List
+   * @param shipment_id
+   * @param offset
+   * @param search
+   * @param limit
+   * @param order
+   * @param access_token
    */
-  public actualizarPaquete(payload: any, id: number) {
-    return this.http.put('http://localhost:3000/api/paquetes/' + id, payload);
+  public shipmentTrackingHistoryList(
+    shipment_id: string = '',
+    offset: string,
+    search: string,
+    limit: string,
+    order: string,
+    access_token: string,
+  ) {
+    return this.http.get(
+      environment.URL_BASE_NESTJS +
+        'internal/shipment-tracking-history/' +
+        shipment_id +
+        '?offset=' +
+        offset +
+        '&search=' +
+        search +
+        '&limit=' +
+        limit +
+        '&order=' +
+        order,
+      {
+        headers: new HttpHeaders({
+          Authorization: 'Bearer ' + access_token,
+        }),
+      },
+    );
   }
 }

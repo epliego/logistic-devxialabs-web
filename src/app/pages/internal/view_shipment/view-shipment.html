@@ -1,10 +1,11 @@
 <div class="col-lg-12">
+  <!-- Card Shipment Details -->
   <div class="card">
     <div class="card-header">
-      <h5 class="card-title mb-0">Ver Envío</h5>
+      <h5 class="card-title mb-0">Ver Detalles del Envío</h5>
     </div>
     <div class="card-body">
-      <form [formGroup]="updateShipmentForm" (ngSubmit)="onSubmit()">
+      <form [formGroup]="updateShipmentForm">
         <input id="shipment_id" name="shipment_id" type="number" value="{{ shipmentId() }}" required hidden="hidden">
 
         <div class="row g-3">
@@ -141,6 +142,39 @@
 <!--          </div>-->
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Card Shipment Tracking History -->
+  <div class="card">
+    <div class="card-header">
+      <h5 class="card-title mb-0">Ver Historial del Envío</h5>
+    </div>
+    <div class="card-body">
+      <table id="js-list-shipment-tracking-history" class="display table table-bordered dt-responsive js-list-shipment-tracking-history compact" style="width:100%">
+        <thead>
+          <tr>
+            <th>shipment_tracking_history_id</th>
+            <th>Código de seguimiento</th>
+            <th>Destinatario</th>
+            <th>Destino</th>
+            <th>Estado</th>
+            <th>Fecha registro</th>
+            <th>Registrado por</th>
+          </tr>
+        </thead>
+        <tfoot>
+          <tr>
+            <th>shipment_tracking_history_id</th>
+            <th>Código de seguimiento</th>
+            <th>Destinatario</th>
+            <th>Destino</th>
+            <th>Estado</th>
+            <th>Fecha registro</th>
+            <th>Registrado por</th>
+          </tr>
+        </tfoot>
+      </table>
     </div>
   </div>
 </div>
