@@ -3,6 +3,9 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { tap } from 'rxjs/operators';
 import { InternalService } from '../../../services/internal.service';
+import { Router } from '@angular/router';
+import { jwtDecode } from 'jwt-decode';
+import { AuthUserType } from '../../../types/auth-user.type';
 
 const $ = (window as any).$;
 
@@ -18,6 +21,7 @@ export class AddUser {
   protected readonly title = signal('Internal - Add User');
 
   private readonly internalService = inject(InternalService);
+  private router = inject(Router);
 
   public internal_user_profile_list = signal<any[]>([]);
 
@@ -29,6 +33,21 @@ export class AddUser {
   }
 
   public async ngOnInit(): Promise<void> {
+    if (
+      !localStorage.getItem('internal_user_token') ||
+      localStorage.getItem('internal_user_token') === ''
+    ) {
+      await this.router.navigate(['/']);
+    }
+
+    const access_token_decoded = jwtDecode<AuthUserType>(
+      localStorage.getItem('internal_user_token')!,
+    );
+
+    if (access_token_decoded.user_profile_name !== 'Supervisor') {
+      await this.router.navigate(['/']);
+    }
+
     if (typeof (window as any).$ === 'undefined') {
       console.warn('jQuery not available, skipping DataTable init');
 

@@ -1,5 +1,5 @@
 import { Component, signal, inject, ChangeDetectorRef } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { InternalService } from '../../../services/internal.service';
@@ -17,6 +17,7 @@ export class ViewShipment {
 
   protected readonly shipmentId = signal<number | null>(null);
   private readonly route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   private readonly internalService = inject(InternalService);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -31,6 +32,13 @@ export class ViewShipment {
   }
 
   public async ngOnInit(): Promise<void> {
+    if (
+      !localStorage.getItem('internal_user_token') ||
+      localStorage.getItem('internal_user_token') === ''
+    ) {
+      await this.router.navigate(['/']);
+    }
+
     const idStr = this.route.snapshot.paramMap.get('id');
     const idNum = idStr ? Number(idStr) : NaN;
     this.shipmentId.set(Number.isFinite(idNum) ? idNum : null);
