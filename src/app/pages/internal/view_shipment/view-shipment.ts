@@ -1,18 +1,14 @@
 import { Component, signal, inject, ChangeDetectorRef } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { tap } from 'rxjs/operators';
 import { InternalService } from '../../../services/internal.service';
-import { ValuesCatalogService } from '../../../services/values-catalog.service';
 
 const $ = (window as any).$;
 
-declare const Toastify: any;
-
 @Component({
   selector: 'view-shipment-root',
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './view-shipment.html',
   styleUrl: './view-shipment.css',
 })

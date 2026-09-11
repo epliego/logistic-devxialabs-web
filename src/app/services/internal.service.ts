@@ -59,12 +59,21 @@ export class InternalService {
   }
 
   /**
-   * Actualiza Estado del Paquete
+   * Update Shipment Status
    * @param payload
-   * @param estado
+   * @param status_id
+   * @param access_token
    */
-  public actualizarEstadoPaquete(payload: any, estado: number) {
-    return this.http.patch('http://localhost:3000/api/paquetes/' + estado + '/estado', payload);
+  public updateShipmentStatus(payload: any, status_id: string, access_token: string) {
+    return this.http.patch(
+      environment.URL_BASE_NESTJS + 'internal/shipments/' + status_id + '/status',
+      payload,
+      {
+        headers: new HttpHeaders({
+          Authorization: 'Bearer ' + access_token,
+        }),
+      },
+    );
   }
 
   /**

@@ -91,7 +91,7 @@ export class Shipments {
 
     this.createShipmentForm();
 
-    this.formularioActualizarEstadoPaquete();
+    this.updateStatusShipmentForm();
   }
 
   /**
@@ -129,35 +129,15 @@ export class Shipments {
 
             const array_data: any[] = [];
             for (const shipment of res.data[0].list_shipments) {
-              let estado_option =
-                '                  <option value="REGISTRADO">REGISTRADO</option>' +
-                '                  <option value="EN_TRANSITO">EN_TRANSITO</option>' +
-                '                  <option value="ENTREGADO">ENTREGADO</option>' +
-                '                  <option value="DEVUELTO">DEVUELTO</option>';
-              if (shipment.status === 'REGISTRADO') {
-                estado_option =
-                  '                  <option value="REGISTRADO" selected>REGISTRADO</option>' +
-                  '                  <option value="EN_TRANSITO">EN_TRANSITO</option>' +
-                  '                  <option value="ENTREGADO">ENTREGADO</option>' +
-                  '                  <option value="DEVUELTO">DEVUELTO</option>';
-              } else if (shipment.status === 'EN_TRANSITO') {
-                estado_option =
-                  '                  <option value="REGISTRADO">REGISTRADO</option>' +
-                  '                  <option value="EN_TRANSITO" selected>EN_TRANSITO</option>' +
-                  '                  <option value="ENTREGADO">ENTREGADO</option>' +
-                  '                  <option value="DEVUELTO">DEVUELTO</option>';
-              } else if (shipment.status === 'ENTREGADO') {
-                estado_option =
-                  '                  <option value="REGISTRADO">REGISTRADO</option>' +
-                  '                  <option value="EN_TRANSITO">EN_TRANSITO</option>' +
-                  '                  <option value="ENTREGADO" selected>ENTREGADO</option>' +
-                  '                  <option value="DEVUELTO">DEVUELTO</option>';
-              } else if (shipment.status === 'DEVUELTO') {
-                estado_option =
-                  '                  <option value="REGISTRADO">REGISTRADO</option>' +
-                  '                  <option value="EN_TRANSITO">EN_TRANSITO</option>' +
-                  '                  <option value="ENTREGADO">ENTREGADO</option>' +
-                  '                  <option value="DEVUELTO" selected>DEVUELTO</option>';
+              let status_option = '';
+              for (const option of this.status_options) {
+                if (shipment.status === option.name) {
+                  status_option +=
+                    '                  <option value="' + option.id + '" selected>' + option.name + '</option>';
+                } else {
+                  status_option +=
+                    '                  <option value="' + option.id + '">' + option.name + '</option>';
+                }
               }
 
               array_data.push({
@@ -174,44 +154,32 @@ export class Shipments {
                   '  </button>' +
                   '  <ul class="dropdown-menu dropdown-menu-end">' +
                   '    <li>' +
-                  '      <a href="javascript:void(0)" class="dropdown-item view-shipment" data-id="' +
-                  shipment.shipment_id +
-                  '">' +
+                  '      <a href="javascript:void(0)" class="dropdown-item view-shipment" data-id="' + shipment.shipment_id + '">' +
                   '        <i class="ri-file-pdf-fill align-bottom me-2 text-muted"></i>Ver' +
                   '      </a>' +
                   '    </li>' +
                   '    <li>' +
-                  '      <button type="button" class="dropdown-item remove-item-btn" data-bs-toggle="modal" data-bs-target=".actualizar-estado-modal-xl-' +
-                  shipment.shipment_id +
-                  '">' +
+                  '      <button type="button" class="dropdown-item remove-item-btn" data-bs-toggle="modal" data-bs-target=".update-status-modal-xl-' + shipment.shipment_id + '">' +
                   '        <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i>Actualizar Estado' +
                   '      </button>' +
                   '    </li>' +
                   '  </ul>' +
                   '</div>' +
-                  '<div class="modal fade actualizar-estado-modal-xl-' +
-                  shipment.shipment_id +
-                  '" tabindex="-1" role="dialog" aria-labelledby="myExtraLargeModalLabel" aria-hidden="true">' +
+                  '<div class="modal fade update-status-modal-xl-' + shipment.shipment_id + '" tabindex="-1" role="dialog" aria-labelledby="myExtraLargeModalLabel" aria-hidden="true">' +
                   '  <div class="modal-dialog modal-xl">' +
                   '    <div class="modal-content">' +
                   '      <div class="modal-header">' +
-                  '        <h5 class="modal-title" id="myExtraLargeModalLabel">Actualizar Estado del Paquete</h5>' +
+                  '        <h5 class="modal-title" id="myExtraLargeModalLabel">Actualizar Estado del Envío</h5>' +
                   '          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>' +
                   '      </div>' +
                   '      <div class="modal-body">' +
-                  '        <p>Por favor, seleccione el nuevo Estado del Paquete</p>' +
+                  '        <p>Por favor, seleccione el nuevo Estado del Envío</p>' +
                   '        <div class="row g-3">' +
                   '          <div class="col-xxl-4 col-sm-12 input-group-lg">' +
                   '            <div class="form-line">' +
-                  '              <label for="cambio_estado' +
-                  shipment.shipment_id +
-                  '" class="col-form-label">Ver por Estado</label>' +
-                  '              <select id="cambio_estado' +
-                  shipment.shipment_id +
-                  '" name="cambio_estado' +
-                  shipment.shipment_id +
-                  '" class="form-select validate" required>' +
-                  estado_option +
+                  '              <label for="status_change_' + shipment.shipment_id + '" class="col-form-label">Ver por Estado</label>' +
+                  '              <select id="status_change_' + shipment.shipment_id + '" name="status_change_' + shipment.shipment_id + '" class="form-select validate" required>' +
+                  status_option +
                   '              </select>' +
                   '            </div>' +
                   '          </div>' +
@@ -221,7 +189,7 @@ export class Shipments {
                   '        <a href="javascript:void(0);" class="btn btn-link link-danger shadow-none fw-medium" data-bs-dismiss="modal">' +
                   '          <i class="ri-close-line me-1 align-middle"></i>No' +
                   '        </a>' +
-                  '        <button type="button" class="btn btn-success waves-effect waves-light button-actualizar-estado-paquete">' +
+                  '        <button type="button" class="btn btn-success waves-effect waves-light button-update-status-shipment">' +
                   '          <div class="text-send">' +
                   '            Guardar' +
                   '          </div>' +
@@ -510,34 +478,36 @@ export class Shipments {
   }
 
   /**
-   * Formulario Actualizar Estado del Paquete
+   * Update Status Shipment Form
    * @private
    */
-  private formularioActualizarEstadoPaquete(): void {
-    const formularioActualizarEstadoPaqueteThis = this;
+  private updateStatusShipmentForm(): void {
+    const updateStatusShipmentFormThis = this;
 
-    $('body').on('click', '.button-actualizar-estado-paquete', function (event: any) {
-      let tabla = formularioActualizarEstadoPaqueteThis.datatable_shipments_list
+    $('body').on('click', '.button-update-status-shipment', function (event: any) {
+      let table = updateStatusShipmentFormThis.datatable_shipments_list
         .row($(event.target).parents('tr'))
         .data();
-      // console.log(tabla.id);
+      console.log(table);
+      console.log(table.shipment_id);
       // return;
 
       const body = {
-        estado: $('#cambio_estado' + tabla.id).val(),
+        status_id: parseInt($('#status_change_' + table.shipment_id).val()),
       };
+      console.log(body);
 
-      formularioActualizarEstadoPaqueteThis.internalService
-        .actualizarEstadoPaquete(body, tabla.id)
+      updateStatusShipmentFormThis.internalService
+        .updateShipmentStatus(body, table.shipment_id, localStorage.getItem('internal_user_token')!)
         .pipe(
           tap(() => {
-            // formularioActualizarEstadoPaqueteThis.isLoading = true;
+            // updateStatusShipmentFormThis.isLoading = true;
             // console.log('beforeSend: Spinner activated, UI disabled.');
-            $('.button-actualizar-estado-paquete').attr('disabled', true);
+            $('.button-update-status-shipment').attr('disabled', true);
 
             $('.text-send').css('display', 'none');
 
-            $('.button-actualizar-estado-paquete').addClass('btn-load');
+            $('.button-update-status-shipment').addClass('btn-load');
 
             $('.spinner-border').css('display', 'block');
             $('.flex-grow-1').css('display', 'block');
@@ -548,7 +518,7 @@ export class Shipments {
               // console.log('Success callback: Data saved!', response);
 
               if (response.statusCode === 200) {
-                $('.actualizar-estado-modal-xl-' + tabla.id).modal('hide');
+                $('.update-status-modal-xl-' + table.shipment_id).modal('hide');
 
                 Toastify({
                   text: response.message,
@@ -559,8 +529,8 @@ export class Shipments {
                   },
                 }).showToast(); //Consulted (12-2023) in: https://apvarun.github.io/toastify-js/, https://github.com/apvarun/toastify-js/blob/master/README.md
 
-                formularioActualizarEstadoPaqueteThis.initializeDataTableShipmentsList(
-                  formularioActualizarEstadoPaqueteThis.status_id,
+                updateStatusShipmentFormThis.initializeDataTableShipmentsList(
+                  updateStatusShipmentFormThis.status_id,
                 );
               } else {
                 let message_text;
@@ -580,11 +550,11 @@ export class Shipments {
                 }).showToast(); //Consulted (12-2023) in: https://apvarun.github.io/toastify-js/, https://github.com/apvarun/toastify-js/blob/master/README.md
               }
 
-              $('.button-actualizar-estado-paquete').attr('disabled', false);
+              $('.button-update-status-shipment').attr('disabled', false);
 
               $('.text-send').css('display', 'block');
 
-              $('.button-actualizar-estado-paquete').removeClass('btn-load');
+              $('.button-update-status-shipment').removeClass('btn-load');
 
               $('.spinner-border').css('display', 'none');
               $('.flex-grow-1').css('display', 'none');
@@ -602,11 +572,11 @@ export class Shipments {
                 },
               }).showToast(); //Consulted (12-2023) in: https://github.com/apvarun/toastify-js/blob/master/README.md
 
-              $('.button-actualizar-estado-paquete').attr('disabled', false);
+              $('.button-update-status-shipment').attr('disabled', false);
 
               $('.text-send').css('display', 'block');
 
-              $('.button-actualizar-estado-paquete').removeClass('btn-load');
+              $('.button-update-status-shipment').removeClass('btn-load');
 
               $('.spinner-border').css('display', 'none');
               $('.flex-grow-1').css('display', 'none');
