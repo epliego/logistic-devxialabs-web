@@ -140,6 +140,11 @@ export class Shipments {
                 }
               }
 
+              let hidden_status_change: string = '';
+              if (shipment.status === 'ENTREGADO') {
+                hidden_status_change = 'hidden';
+              }
+
               array_data.push({
                 shipment_id: shipment.shipment_id,
                 guide_code: shipment.guide_code,
@@ -159,7 +164,7 @@ export class Shipments {
                   '      </a>' +
                   '    </li>' +
                   '    <li>' +
-                  '      <button type="button" class="dropdown-item remove-item-btn" data-bs-toggle="modal" data-bs-target=".update-status-modal-xl-' + shipment.shipment_id + '">' +
+                  '      <button type="button" class="dropdown-item remove-item-btn" data-bs-toggle="modal" data-bs-target=".update-status-modal-xl-' + shipment.shipment_id + '" ' + hidden_status_change + '>' +
                   '        <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i>Actualizar Estado' +
                   '      </button>' +
                   '    </li>' +
@@ -488,14 +493,12 @@ export class Shipments {
       let table = updateStatusShipmentFormThis.datatable_shipments_list
         .row($(event.target).parents('tr'))
         .data();
-      console.log(table);
-      console.log(table.shipment_id);
+      // console.log(table.shipment_id);
       // return;
 
       const body = {
         status_id: parseInt($('#status_change_' + table.shipment_id).val()),
       };
-      console.log(body);
 
       updateStatusShipmentFormThis.internalService
         .updateShipmentStatus(body, table.shipment_id, localStorage.getItem('internal_user_token')!)
